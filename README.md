@@ -15,16 +15,16 @@ El objetivo del proyecto Delilah Restó es emular la tarea de un desarrollador b
 * Postman
 
 ## Documentación de la API
-Copiar el contenido de `delilahresto.yaml` y pegarlo en Swagger.
+Copiar el contenido de `delilahSwagger.yaml` y pegarlo en Swagger.
 
 ## - Instalación:
 ### 1. Clonar el proyecto
 
-Clonar el proyecto desde el [Link Siguiente](https://github.com/RocioF22/DelilahResto.git).
+Clonar el proyecto desde el [Link Siguiente](https://github.com/RocioF22/DelilahRestoProyecto.git).
 
 Desde la consola con el link siguiente:
 
-`git clone https://github.com/RocioF22/DelilahResto.git`
+`git clone https://github.com/RocioF22/DelilahRestoProyecto.git`
 
 ### 2. Instalación de dependencias
 ```
