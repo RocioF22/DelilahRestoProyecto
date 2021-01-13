@@ -1,4 +1,4 @@
-![alt text](https://github.com/RocioF22/DelilahResto/blob/main/logoDR.png)
+![alt text](https://github.com/RocioF22/DelilahRestoProyecto/blob/main/logoDR.png)
 
 ### Proyecto #3 del curso Desarrollo Web Full Stack de Acámica.
 El objetivo del proyecto Delilah Restó es emular la tarea de un desarrollador backend pensado para un restaurante con una aplicación web para administrar los productos del sistema y sus pedidos.
