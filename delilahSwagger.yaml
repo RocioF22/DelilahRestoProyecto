@@ -1,0 +1,604 @@
+---
+openapi: 3.0.0
+info:
+  title: Delilah Resto API
+  description: Este documento contiene las especificaciones para acceder y utilizar la API de Delilah-Restó
+  contact:
+    email: rocionahirfrancanim@gmail.com
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/RocioF22/DelilahRestoAPI/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: http://localhost:3000
+tags:
+- name: productos
+  description: Contiene todos los productos disponibles.
+- name: usuarios
+  description: Contiene todos los usuarios.
+- name: pedidos
+  description: Contiene todos los pedidos realizados.
+- name: autorización
+  description: Maneja la autorización del usuario para poder acceder
+paths:
+  /login:
+    get:
+      tags:
+      - autorización
+      summary: Obtiene el token
+      description: Se debe pasar el usuario y contraseña
+      parameters:
+      - name: usuario
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: lionel10
+      - name: clave
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: password
+          example: "1324321"
+      responses:
+        "200":
+          description: Se ha logueado satisfactoriamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/token'
+        "401":
+          description: Correo y/o contraseña inválido
+  /usuarios:
+    get:
+      tags:
+      - usuarios
+      summary: Retorna la lista de usuarios si es administrador.
+      description: Solo los administradores pueden acceder.
+      responses:
+        "200":
+          description: Operación exitosa
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/usuario'
+        "401":
+          description: El token no fue provisto o es inválido
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - usuarios
+      summary: Crea un nuevo usuario
+      description: Crea un nuevo usuario con la información provista en el objeto
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/nuevoUsuario'
+        required: true
+      responses:
+        "201":
+          description: Creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/usuario'
+        "400":
+          description: Error al validar la información provista
+        "409":
+          description: El usuario o correo ya existe
+  /usuarios/{id}:
+    get:
+      tags:
+      - usuarios
+      summary: Obtiene la información del usuario
+      description: El usuario que no es admin puede acceder sólo a su propio usuario
+      parameters:
+      - name: id
+        in: path
+        description: El id del usuario
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          example: 10
+      responses:
+        "200":
+          description: El usuario se ha provisto satisfactoriamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/usuario'
+        "400":
+          description: Solo el administrador tiene acceso a esta información
+        "401":
+          description: El token no fue provisto o es inválido
+        "404":
+          description: No existe usuario con el id especificado
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - usuarios
+      summary: Actualiza la información del usuario
+      description: El administrador puede actualizar cualquier usuario, de lo contrario sólo puede actualizar el propio
+      parameters:
+      - name: id
+        in: path
+        description: Identificador del usuario
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          example: 10
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/nuevoUsuario'
+        required: true
+      responses:
+        "200":
+          description: El usuario se ha actualizado satisfactoriamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/usuarioMinimo'
+        "401":
+          description: El token no fue provisto o es inválido
+        "402":
+          description: Acceso denegado
+        "404":
+          description: No existe usuario con el id especificacado
+        "409":
+          description: El correo/ usuario que se intenta modificar ya existe
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - usuarios
+      summary: Eliminar usuario
+      description: Sólo el administrador puede eliminar un usuario
+      parameters:
+      - name: id
+        in: path
+        description: Identificador del usuario a remover
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          example: 10
+      responses:
+        "204":
+          description: El usuario ha sido eliminado
+        "401":
+          description: El token no fue provisto o es inválido
+        "404":
+          description: No existe usuario con el id especificacado
+        "409":
+          description: Usuario vinculado a un pedido activo. Resuelva el conflicto y vuelva a intentarlo
+      security:
+      - bearerAuth: []
+  /productos:
+    get:
+      tags:
+      - productos
+      summary: Obtiene todos los productos disponibles
+      responses:
+        "200":
+          description: Los productos se han listado satisfactoriamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/producto'
+        "401":
+          description: El token no fue provisto o es inválido
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - productos
+      summary: Crear un nuevo producto
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/productoMinimo'
+        required: true
+      responses:
+        "201":
+          description: El producto ha sido creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/producto'
+        "400":
+          description: Error al validar la información provista
+        "401":
+          description: El token no fue provisto o es inválido
+      security:
+      - bearerAuth: []
+  /productos/{id}:
+    get:
+      tags:
+      - productos
+      summary: Obtener un producto con el id especificado
+      parameters:
+      - name: id
+        in: path
+        description: Identificador del producto
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          example: 123
+      responses:
+        "200":
+          description: El producto se ha obtenido satisfactoriamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/producto'
+        "401":
+          description: El token no fue provisto o es inválido
+        "404":
+          description: No existe producto con el id especificado
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - productos
+      summary: Actualiza la información del producto
+      parameters:
+      - name: id
+        in: path
+        description: Identificador del producto
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          example: 123
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/productoMinimo'
+        required: true
+      responses:
+        "200":
+          description: El producto se ha actulizado satisfactoriamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/producto'
+        "400":
+          description: Error al validar la información provista
+        "401":
+          description: El token no fue provisto o es inválido
+        "404":
+          description: No existe producto con el id especificad
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - productos
+      summary: Eliminar producto
+      description: El administrador sólo puede eliminar productos
+      parameters:
+      - name: id
+        in: path
+        description: Identificador del producto
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          example: 123
+      responses:
+        "204":
+          description: El producto ha sido eliminado
+        "401":
+          description: El token no fue provisto o es inválido
+        "404":
+          description: No existe producto con el id especificado
+        "409":
+          description: Producto vinculado a un pedido activo. Resuelva el conflicto y vuelva a intentarlo
+      security:
+      - bearerAuth: []
+  /pedidos:
+    get:
+      tags:
+      - pedidos
+      summary: Retorna todos los pedidos en función de los parámetros.
+      description: Si lo solicita un admin entonces devuelve todos los pedidos, de lo contrario retorna sólo los suyos.
+      responses:
+        "200":
+          description: Arreglo de pedidos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/pedido'
+        "400":
+          description: No existe el usuario que está haciendo el requerimiento
+        "401":
+          description: El token no fue provisto o es inválido
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - pedidos
+      summary: Se crea un nuevo pedido.
+      description: La identificación del ususario se encontrará dentro del token.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/nuevoPedido'
+        required: true
+      responses:
+        "201":
+          description: El pedido se ha creado satisfactoriamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pedido'
+        "400":
+          description: Error al validar la información provista
+        "401":
+          description: El token no fue provisto o es inválido
+      security:
+      - bearerAuth: []
+  /pedidos/{id}:
+    get:
+      tags:
+      - pedidos
+      summary: Devuelve los pedidos
+      parameters:
+      - name: id
+        in: path
+        description: Identificador del pedido
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          example: 22
+      responses:
+        "200":
+          description: El pedido fue devuelto con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pedido'
+        "401":
+          description: El token no fue provisto o es inválido
+        "404":
+          description: No existe producto con el id especificado
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - pedidos
+      summary: Se actualiza el pedido especificado
+      description: Se debe especificar el identificador del pedido a modificar
+      parameters:
+      - name: id
+        in: path
+        description: Identificador del pedido
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          example: 3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pedidoPut'
+        required: true
+      responses:
+        "200":
+          description: El pedido se ha actulizado satisfactoriamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pedido'
+        "400":
+          description: Error al validar la información provista
+        "401":
+          description: El token no fue provisto o es inválido
+        "403":
+          description: El identificador del estado no es válido
+        "404":
+          description: No existe pedido con el id especificado
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - pedidos
+      summary: Eliminar pedido
+      description: Solo el administrador puede eliminar un pedido
+      parameters:
+      - name: id
+        in: path
+        description: Identificador del pedido
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          example: 123
+      responses:
+        "204":
+          description: El producto ha sido eliminado
+        "401":
+          description: El token no fue provisto o es inválido
+        "404":
+          description: No existe el pedido con el id especificado
+      security:
+      - bearerAuth: []
+components:
+  schemas:
+    usuarioMinimo:
+      type: object
+      properties:
+        correo:
+          type: string
+          example: correo@yopmail.com
+        telefono:
+          type: string
+          example: +5429131313131
+        direccion_envio:
+          type: string
+          example: La casa de al lado 234
+        nombre_apellido:
+          type: string
+          example: Lionel Andrés Messi
+        usuario:
+          type: string
+          example: lionel10
+        clave:
+          type: string
+          example: 123lio
+    nuevoUsuario:
+      allOf:
+      - $ref: '#/components/schemas/usuarioMinimo'
+      - type: object
+        properties:
+          clave:
+            type: string
+            example: "12345"
+    usuario:
+      allOf:
+      - $ref: '#/components/schemas/usuarioMinimo'
+      - type: object
+        properties:
+          id:
+            type: number
+            example: 102
+    productoMinimo:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: Bagel de salmón
+        precio:
+          type: number
+          example: 300
+        img:
+          type: string
+          example: https://via.placeholder.com/150
+    productoCompleto:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: Bagel de salmón
+        precio:
+          type: number
+          example: 300
+        img:
+          type: string
+          example: https://via.placeholder.com/150
+        cantidad:
+          type: number
+          example: 2
+    producto:
+      allOf:
+      - type: object
+        properties:
+          id:
+            type: number
+            example: 2
+      - $ref: '#/components/schemas/productoMinimo'
+    pedido_nuevo:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        precio:
+          type: number
+          example: 425
+        cantidad:
+          type: number
+          example: 2
+    nuevoPedido:
+      properties:
+        productos:
+          type: array
+          items:
+            $ref: '#/components/schemas/pedido_nuevo'
+        forma_de_pago_id:
+          type: number
+          example: 2
+        direccion_envio:
+          type: string
+          example: Entre Rios 2222
+    pedidoCompleto:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        estado_pedido:
+          type: string
+          example: NUEVO
+        total:
+          type: number
+          example: 250
+        forma_de_pago:
+          type: string
+          example: efectivo
+        usuario_id:
+          type: integer
+          example: 10
+        hora:
+          type: string
+          format: date-time
+        productos:
+          type: array
+          items:
+            $ref: '#/components/schemas/productoCompleto'
+    pedido:
+      allOf:
+      - $ref: '#/components/schemas/pedidoCompleto'
+      - type: object
+    pedidoPut:
+      properties:
+        estado_pedido_id:
+          type: number
+          example: 3
+    token:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+  responses:
+    unauthorized:
+      description: El token no fue provisto o es inválido
+    errorValidacion:
+      description: Error al validar la información provista
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
